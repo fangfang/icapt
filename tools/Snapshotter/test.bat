@@ -1,0 +1,1 @@
+Snapshotter -u "http://www.mewsoft.com" -o "mewsoft.jpg" -w 120 -h 90
