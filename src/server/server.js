@@ -15,7 +15,7 @@ app.configure(function() {
 });
 
 app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, './'));
+app.set('views', path.join(__dirname, './views/'));
 app.listen(port);
 console.log('[log] server started at '+port);
 
@@ -28,9 +28,13 @@ app.get('/', function(req, res) {
 });
 
 app.get('/add', function(req, res) {
-    var query = require('querystring').parse(require('url').parse(req.url).query);
-    addTask(query['url']);
-    res.send('ok');
+    try {
+        var query = require('querystring').parse(require('url').parse(req.url).query);
+        addTask(query['url']);
+        res.send('ok');
+    } catch(e) {
+        res.send('error');
+    }
 });
 
 app.get('/get/:clientId', function(req, res) {
@@ -69,12 +73,7 @@ app.post('/upload/:taskId', function(req, res, next) {
         var p = path.join(a, b);
         mkdirP(path, 488);
         */
-        res.send('back');
-    });
-
-    req.form.on('progress', function(bytesReceived, bytesExpected) {
-        var percent = (bytesReceived / bytesExpected * 100) | 0;
-        process.stdout.write('Uploading: %' + percent + '\r');
+        res.send('ok');
     });
 });
 
