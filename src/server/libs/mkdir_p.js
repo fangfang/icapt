@@ -1,3 +1,6 @@
+
+// Ref: https://gist.github.com/707661
+
 var path = require('path');
 var fs = require('fs');
 
