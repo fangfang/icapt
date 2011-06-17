@@ -8,7 +8,7 @@ yunqian (http://www.chencheng.org/)
 
 ## Client Flow
 
-1. 客户端每 10s 获取一次服务器端的数据
+1. 客户端每 10s 获取一次服务器端的数据，接口格式为 url/clientId, clientId 要求每个 client 唯一
 2. 服务端以数组形式传回数据
    1) 单条任务
       [[url, taskId]]
