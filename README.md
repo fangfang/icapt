@@ -2,8 +2,8 @@ iCapt is a web screen capture system for IE*, WebKit ..
 
 ## Author
 
-* jizha   (http://oldj.net/)
-* yunqian (http://www.chencheng.org/)
+* 季札 (http://oldj.net/)
+* 云谦 (http://www.chencheng.org/)
 
 
 ## Client Flow
