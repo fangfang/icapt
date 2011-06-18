@@ -1,4 +1,4 @@
-iCapt is a web screen capture system for IE*, WebKit ..
+iCapt is a web screen capture system for IE*, WebKit, Firefox ... 
 
 ## Author
 
