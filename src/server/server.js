@@ -3,6 +3,7 @@ var express = require('express'),
     form = require('connect-form'),
     path = require('path'),
     uuid = require('node-uuid'),
+    fs = require('fs'),
     mkdirP = require('./libs/mkdir_p'),
     app = express.createServer(form({ keepExtensions: true })),
     port = process.env.PORT || 8888,
@@ -12,7 +13,7 @@ var express = require('express'),
             taskId: '12345',
             url: 'http://www.taobao.com/',
             status: {},
-            path: '../../imgs/2011/06/17/12345/'
+            path: '2011/06/17/12345'
         }
     };
 
@@ -20,6 +21,7 @@ app.configure(function() {
     app.use(express.methodOverride());
     app.use(express.bodyParser());
     app.use(app.router);
+    app.use(express.static(path.join(__dirname, '../../imgs')));
 });
 
 app.set('view engine', 'jade');
@@ -32,14 +34,22 @@ console.log('[log] server started at '+port);
 // Router
 
 app.get('/', function(req, res) {
-    res.render('home.jade', {layout: false});
+    var listGuide = '';
+    try {
+        var query = require('querystring').parse(require('url').parse(req.url).query);
+        var p = query.path;
+        p = p.replace(/\//g, '-');
+        listGuide = '<br><br><a href="/list/'+p+'">Click to view imgs..</a>';
+    } catch(e) {}
+    res.render('home.jade', {layout:false, listGuide:listGuide});
 });
 
 app.get('/add', function(req, res) {
     try {
         var query = require('querystring').parse(require('url').parse(req.url).query);
-        addTask(query['url']);
-        res.send("ok\n");
+        var task = addTask(query['url']);
+        // res.send("ok\n");
+        res.redirect('/?path='+task.path);
     } catch(e) {
         res.send("error\n");
     }
@@ -77,10 +87,10 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
             var task = tasks[taskId];
             if (task) {
                 console.log(task);
-                var p = path.join(__dirname, task.path);
+                var p = path.join(__dirname, '../../imgs/', task.path + '/');
                 mkdirP(p, 488, function() {
                     var newFilePath = p + type + path.extname(f.name);
-                    require('fs').rename(f.path, newFilePath);
+                    fs.rename(f.path, newFilePath);
                 });
             }
         }
@@ -90,7 +100,23 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
 });
 
 app.get('/list/:path', function(req, res) {
+    var p = req.params.path;
+    p = p.replace(/-/g, '/');
+    p = path.join(__dirname, '../../imgs/', p);
+    fs.readdir(p, function(err, files) {
+        if (err) {
+            res.render('list.jade', {layout:false, imgs:'error'});
+            return;
+        }
 
+        var imgs = '';
+        files.forEach(function(f) {
+            var filePath = path.join(p, f).split('imgs')[1];
+            imgs += '<h2>' + f + '</h2>';
+            imgs += '<div><img src="'+filePath+'" alt="'+f+'" /></div><br><br>';
+        });
+        res.render('list.jade', {layout: false, imgs:imgs});
+    });
 });
 
 
@@ -109,9 +135,10 @@ function addTask(url) {
         taskId: taskId,
         url: url,
         status: {},
-        path: '../../imgs/'+y+'/'+m+'/'+d+'/'+taskId+'/'
+        path: y+'/'+m+'/'+d+'/'+taskId
     };
     tasks[taskId] = task;
+    return task;
 }
 
 function getTasks(type) {
