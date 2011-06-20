@@ -135,6 +135,13 @@ function addTask(url) {
     var d = n.getDate();
     m = m.length === 1 ? ('0'+m) : m;
 
+    if (url.indexOf('http://') === -1) {
+        url = 'http://' + url;
+    }
+    if (url.lastIndexOf('/') !== url.length-1) {
+        url += '/';
+    }
+
     var task = {
         taskId: taskId,
         url: url,
