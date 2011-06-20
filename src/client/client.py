@@ -14,25 +14,28 @@ curl -F "filename=@test.jpg" http://wiki.ued.taobao.net:8888/upload/ie6/12345
 curl -F "filename=@test.jpg" http://wiki.ued.taobao.net:8888/upload/ie7/12345
 curl -F "filename=@test.jpg" http://wiki.ued.taobao.net:8888/upload/ie8/12345
 
+
+上传文件部分使用到了第三方模块 poster：
+http://atlee.ca/software/poster/
 """
 
 import time
-import datetime
 import os
 import ConfigParser
 import simplejson
 import traceback
 import urllib
 import urllib2
-import cookielib
-from libs import MultipartPostHandler
+import re
 
+from poster.encode import multipart_encode
+from poster.streaminghttp import register_openers
 
 g_urls = {
 	"gettask": "http://wiki.ued.taobao.net:8888/get/%(agent)s",
 	"addtask": "http://wiki.ued.taobao.net:8888/add?url=%(url)s",
 	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/%s(agent)s/%(task_id)s",
-}
+	}
 
 
 def getConfig():
@@ -43,27 +46,30 @@ def getConfig():
 
 	agent = conf.get("setting", "agent")
 	capt_cmd = conf.get("setting", "capt_cmd")
+	capt_cmd = re.sub(r"\${(\w+?)}", "%(\g<1>)s", capt_cmd)
 
 	return {
 		"agent": agent,
 		"capt_cmd": capt_cmd,
-	}
+		}
 
 
 def uploadTask(configures, fn, task_id):
 	u"""上传任务"""
 
-	cookies = cookielib.CookieJar()
-	opener = urllib2.build_opener(
-		urllib2.HTTPCookieProcessor(cookies),
-		MultipartPostHandler.MultipartPostHandler,
-	)
+	print("uploading...")
+	register_openers()
+
 	params = {
 		"agent": configures["agent"],
 		"task_id": task_id,
-		"file": open(fn, "rb"),
-	}
-	opener.open(g_urls["uploadfile"] % params, params)
+		}
+	url = g_urls["uploadfile"] % params
+	datagen, headers = multipart_encode({"image": open(fn, "rb")})
+
+	request = urllib2.Request(url, datagen, headers)
+
+	print(urllib2.urlopen(request).read())
 
 
 def handleOneTask(configures, task_url, task_id, out="out.png"):
@@ -72,16 +78,17 @@ def handleOneTask(configures, task_url, task_id, out="out.png"):
 	print("> %s\t%s" % (task_id, task_url))
 
 	capt_conf = {
+		"url": task_url,
 		"out": out,
-	}
+		}
 	capt_conf.update(configures)
 
 	c = os.system(configures["capt_cmd"] % capt_conf)
-	print(c.read())
+	print(c)
 
 	if os.path.isfile(out):
 		# 截图成功，处理当前截图
-		pass
+		uploadTask(configures, out, task_id)
 	else:
 		# 截图失败，在当前目录下未找到截图
 
@@ -108,9 +115,8 @@ def getAndDo(configures):
 
 
 def main():
-
 	configures = getConfig()
-#	print(configures)
+	print(configures)
 
 	while True:
 		getAndDo(configures)
