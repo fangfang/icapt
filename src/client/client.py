@@ -125,11 +125,16 @@ def handleOneTask(configures, task_url, task_id, out="out.png", timeout=60):
 	c = os.popen(cmdstr)
 	print(c.read())
 
-	while timeout > 0 and not os.path.isfile(out):
+	while timeout > 0:
 		# 硬盘上没有对应的截图文件
 		# 有可能截图操作是异步的，等待一段时间看是否能找到图片
+		if os.path.isfile(out):
+			break
 		timeout -= 1
 		time.sleep(1)
+	else:
+		log("Timeout!")
+		return
 
 	if os.path.isfile(out):
 		# 截图成功，处理当前截图
