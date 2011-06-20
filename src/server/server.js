@@ -1,4 +1,6 @@
 
+require('./libs/fs.extra');
+
 var express = require('express'),
     form = require('connect-form'),
     path = require('path'),
@@ -90,7 +92,8 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
                 var p = path.join(__dirname, '../../imgs/', task.path + '/');
                 mkdirP(p, 488, function() {
                     var newFilePath = p + type + path.extname(f.name);
-                    fs.rename(f.path, newFilePath);
+                    fs.move(f.path, newFilePath);
+                    // fs.rename(f.path, newFilePath);
                 });
             }
         }
