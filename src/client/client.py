@@ -29,6 +29,7 @@ import datetime
 import time
 import os
 import sys
+import shutil
 import ConfigParser
 import simplejson
 import traceback
@@ -80,7 +81,7 @@ def uploadTask(configures, fn, task_id):
 	print(url)
 	datagen, headers = multipart_encode({
 		"file": open(fn, "rb"),
-		"name": "capture.%s" % fn.split(".")[-1],
+		"name": os.path.split(fn)[-1],
 		})
 
 	request = urllib2.Request(url, datagen, headers)
@@ -106,13 +107,20 @@ def handleOneTask(configures, task_url, task_id, out="out.png"):
 		}
 	capt_conf.update(configures)
 
-	c = os.system(configures["capt_cmd"] % capt_conf)
-	print(c)
+	# 截图
+	print("capturing...")
+	if os.path.isfile(out):
+		os.remove(out)
+	c = os.popen(configures["capt_cmd"] % capt_conf)
+	print(c.read())
 
 	if os.path.isfile(out):
 		# 截图成功，处理当前截图
+		fn = "%s.%s" % (task_id, out.split(".")[-1])
+		shutil.move(out, fn)
 		try:
-			uploadTask(configures, out, task_id)
+			uploadTask(configures, fn, task_id)
+			os.remove(fn)
 		except Exception:
 			printErrInfo()
 			return
