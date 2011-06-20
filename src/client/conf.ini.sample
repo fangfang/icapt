@@ -1,0 +1,11 @@
+[setting]
+
+# 使用的客户端
+agent=ie8
+
+# 下面这行为当前系统上的截图命令
+capt_cmd="iecapt --url=%(url)s --out=%(out)s"
+
+# 截图后文件以什么文件名保存
+capt_img="out.png"
+
