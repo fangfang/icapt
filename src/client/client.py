@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
 u"""
-下载一个任务列表并执行
+下载一个任务列表并执行，
+按 Ctrl+C 退出任务。
+
+@author: oldj <oldj.wu@gmail.com>
+@blog: http://oldj.net/
+
+--------------------------------------------------
 
 # add task
 curl http://wiki.ued.taobao.net:8888/add?url=http%3A%2F%2Fwww.taobao.com%2F
@@ -19,15 +25,17 @@ curl -F "filename=@test.jpg" http://wiki.ued.taobao.net:8888/upload/ie8/12345
 http://atlee.ca/software/poster/
 """
 
+import datetime
 import time
 import os
+import sys
 import ConfigParser
 import simplejson
 import traceback
 import urllib
 import urllib2
 import re
-import cookielib
+import signal
 
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
@@ -79,6 +87,13 @@ def uploadTask(configures, fn, task_id):
 	print(urllib2.urlopen(request).read())
 
 
+def printErrInfo():
+	u"""打印出错信息"""
+	print("-" * 50)
+	print(traceback.format_exc())
+	print("-" * 50)
+
+
 def handleOneTask(configures, task_url, task_id, out="out.png"):
 	u"""处理一个任务"""
 
@@ -95,7 +110,11 @@ def handleOneTask(configures, task_url, task_id, out="out.png"):
 
 	if os.path.isfile(out):
 		# 截图成功，处理当前截图
-		uploadTask(configures, out, task_id)
+		try:
+			uploadTask(configures, out, task_id)
+		except Exception:
+			printErrInfo()
+			return
 	else:
 		# 截图失败，在当前目录下未找到截图
 
@@ -110,20 +129,28 @@ def getAndDo(configures):
 		c = u.read()
 		tasks = simplejson.loads(c.strip())
 	except Exception:
-		print("-" * 50)
-		print(traceback.format_exc())
-		print("-" * 50)
+		printErrInfo()
 		return
 
-	print("%d tasks!" % len(tasks))
+	print("> [%s] %d tasks!" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), len(tasks)))
 
 	for task_url, task_id in tasks:
 		handleOneTask(configures, task_url, task_id)
 
 
+def signalCancelHandler(signum, frame):
+	u"""处理键盘 Ctrl+C 事件"""
+
+	print(signum, frame)
+	print("Canceld by Ctrl+C.")
+	sys.exit(1)
+
+
 def main():
 	configures = getConfig()
 #	print(configures)
+
+	signal.signal(signal.SIGINT, signalCancelHandler)
 
 	while True:
 		getAndDo(configures)
