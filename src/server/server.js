@@ -41,7 +41,7 @@ app.get('/', function(req, res) {
         var query = require('querystring').parse(require('url').parse(req.url).query);
         var p = query.path;
         p = p.replace(/\//g, '-');
-        listGuide = '<br><br><a href="/list/'+p+'">Click to view imgs..</a>';
+        listGuide = '<br><br><a href="/list/'+p+'">client is rendering, please click to view imgs after 5 seconds.</a>';
     } catch(e) {}
     res.render('home.jade', {layout:false, listGuide:listGuide});
 });
@@ -109,7 +109,7 @@ app.get('/list/:path', function(req, res) {
 
     fs.readdir(p, function(err, files) {
         if (err) {
-            res.render('list.jade', {layout:false, imgs:'error'});
+            res.render('list.jade', {layout:false, imgs:'client is rendering, please refresh after 5 seconds..'});
             return;
         }
 
