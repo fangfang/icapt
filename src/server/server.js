@@ -138,7 +138,7 @@ function addTask(url) {
     if (url.indexOf('http://') === -1) {
         url = 'http://' + url;
     }
-    if (url.lastIndexOf('/') !== a.length-1) {
+    if (url.lastIndexOf('/') !== url.length-1) {
         url += '/';
     }
 
