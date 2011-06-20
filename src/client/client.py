@@ -27,6 +27,7 @@ import traceback
 import urllib
 import urllib2
 import re
+import cookielib
 
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
@@ -34,7 +35,9 @@ from poster.streaminghttp import register_openers
 g_urls = {
 	"gettask": "http://wiki.ued.taobao.net:8888/get/%(agent)s",
 	"addtask": "http://wiki.ued.taobao.net:8888/add?url=%(url)s",
-	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/%s(agent)s/%(task_id)s",
+	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/%(agent)s/%(task_id)s",
+#	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/ie6/12345",
+#	"uploadfile": "http://127.0.0.1:5000",
 	}
 
 
@@ -65,7 +68,11 @@ def uploadTask(configures, fn, task_id):
 		"task_id": task_id,
 		}
 	url = g_urls["uploadfile"] % params
-	datagen, headers = multipart_encode({"image": open(fn, "rb")})
+	print(url)
+	datagen, headers = multipart_encode({
+		"file": open(fn, "rb"),
+		"name": "capture.%s" % fn.split(".")[-1],
+		})
 
 	request = urllib2.Request(url, datagen, headers)
 
@@ -116,11 +123,14 @@ def getAndDo(configures):
 
 def main():
 	configures = getConfig()
-	print(configures)
+#	print(configures)
 
 	while True:
 		getAndDo(configures)
 		time.sleep(10) # 每次任务之后暂停 10 秒
+
+	# upload test
+#	uploadTask(configures, "out.png", "12345")
 
 
 if __name__ == "__main__":
