@@ -41,10 +41,9 @@ from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 
 g_urls = {
-	"gettask": "http://wiki.ued.taobao.net:8888/get/%(agent)s",
-	"addtask": "http://wiki.ued.taobao.net:8888/add?url=%(url)s",
-	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/%(agent)s/%(task_id)s",
-#	"uploadfile": "http://wiki.ued.taobao.net:8888/upload/ie6/12345",
+	"gettask": "%(server)s/get/%(agent)s",
+	"addtask": "%(server)s/add?url=%(url)s",
+	"uploadfile": "%(server)s/upload/%(agent)s/%(task_id)s",
 #	"uploadfile": "http://127.0.0.1:5000",
 	}
 
@@ -56,11 +55,13 @@ def getConfig():
 	conf.read("conf.ini")
 
 	agent = conf.get("setting", "agent")
+	server = conf.get("setting", "server")
 	capt_cmd = conf.get("setting", "capt_cmd")
 	capt_cmd = re.sub(r"\${(\w+?)}", "%(\g<1>)s", capt_cmd)
 
 	return {
 		"agent": agent,
+		"server": server,
 		"capt_cmd": capt_cmd,
 		}
 
@@ -72,9 +73,9 @@ def uploadTask(configures, fn, task_id):
 	register_openers()
 
 	params = {
-		"agent": configures["agent"],
 		"task_id": task_id,
 		}
+	params.update(configures)
 	url = g_urls["uploadfile"] % params
 	print(url)
 	datagen, headers = multipart_encode({

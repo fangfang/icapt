@@ -6,6 +6,5 @@ agent=ie8
 # 下面这行为当前系统上的截图命令
 capt_cmd="iecapt --url=${url} --out=${out}"
 
-# 截图后文件以什么文件名保存
-capt_img="out.png"
-
+# 主机地址
+server=http://wiki.ued.taobao.net:8888
