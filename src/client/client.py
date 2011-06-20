@@ -49,6 +49,14 @@ g_urls = {
 	}
 
 
+def log(msg):
+	u"""显示消息"""
+
+	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+	print("> [%s] %s" % (now, msg))
+
+
 def getConfig():
 	u"""读取配置信息"""
 
@@ -70,7 +78,7 @@ def getConfig():
 def uploadTask(configures, fn, task_id):
 	u"""上传任务"""
 
-	print("uploading...")
+	log("uploading...")
 	register_openers()
 
 	params = {
@@ -87,6 +95,7 @@ def uploadTask(configures, fn, task_id):
 	request = urllib2.Request(url, datagen, headers)
 
 	print(urllib2.urlopen(request).read())
+	log("upload done!")
 
 
 def printErrInfo():
@@ -96,10 +105,10 @@ def printErrInfo():
 	print("-" * 50)
 
 
-def handleOneTask(configures, task_url, task_id, out="out.png"):
+def handleOneTask(configures, task_url, task_id, out="out.png", timeout=60):
 	u"""处理一个任务"""
 
-	print("> %s\t%s" % (task_id, task_url))
+	log("Task: %s\t%s" % (task_id, task_url))
 
 	capt_conf = {
 		"url": task_url,
@@ -108,11 +117,19 @@ def handleOneTask(configures, task_url, task_id, out="out.png"):
 	capt_conf.update(configures)
 
 	# 截图
-	print("capturing...")
+	log("capturing...")
 	if os.path.isfile(out):
 		os.remove(out)
-	c = os.popen(configures["capt_cmd"] % capt_conf)
+	cmdstr = configures["capt_cmd"] % capt_conf
+	print(cmdstr)
+	c = os.popen(cmdstr)
 	print(c.read())
+
+	while timeout > 0 and not os.path.isfile(out):
+		# 硬盘上没有对应的截图文件
+		# 有可能截图操作是异步的，等待一段时间看是否能找到图片
+		timeout -= 1
+		time.sleep(1)
 
 	if os.path.isfile(out):
 		# 截图成功，处理当前截图
@@ -127,7 +144,7 @@ def handleOneTask(configures, task_url, task_id, out="out.png"):
 	else:
 		# 截图失败，在当前目录下未找到截图
 
-		print("Capture Error!")
+		log("Capture Error!")
 
 
 def getAndDo(configures):
@@ -141,7 +158,7 @@ def getAndDo(configures):
 		printErrInfo()
 		return
 
-	print("> [%s] %d tasks!" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), len(tasks)))
+	log("%d tasks!" % len(tasks))
 
 	for task_url, task_id in tasks:
 		handleOneTask(configures, task_url, task_id)
@@ -151,7 +168,7 @@ def signalCancelHandler(signum, frame):
 	u"""处理键盘 Ctrl+C 事件"""
 
 	print(signum, frame)
-	print("Canceld by Ctrl+C.")
+	log("Canceld by Ctrl+C.")
 	sys.exit(1)
 
 
