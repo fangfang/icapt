@@ -6,8 +6,16 @@ html
 
   body
     h1 iCapt Home
-    form(action='/add')
-      input(name='url', autocomplete='off')
+    form(action='/add', id='frm')
+      input(name='url', autocomplete='off', id='url')
       br
       button(type='submit') Submit
     !{listGuide}
+    script(src='http://a.tbcdn.cn/p/test/1.0/libs/jquery-1.5.1.min.js')
+    script
+      $('#frm').submit(function() {
+        if ($('#url').val().split('.').length === 1) {
+            alert('url?');
+            return false;
+        }
+      });
