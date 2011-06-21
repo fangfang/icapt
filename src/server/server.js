@@ -138,9 +138,11 @@ function addTask(url) {
     if (url.indexOf('http://') === -1) {
         url = 'http://' + url;
     }
+    /*
     if (url.lastIndexOf('/') !== url.length-1) {
         url += '/';
     }
+    */
 
     var task = {
         taskId: taskId,
