@@ -135,7 +135,7 @@ function addTask(url) {
     var d = n.getDate();
     m = m.length === 1 ? ('0'+m) : m;
 
-    if (url.indexOf('http://') === -1) {
+    if (url.indexOf('http://') !== 0 || url.indexOf('https://') !== 0) {
         url = 'http://' + url;
     }
     /*
