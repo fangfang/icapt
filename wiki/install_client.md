@@ -1,21 +1,21 @@
-## ¿Í»§¶Ë°²×°Ö¸ÄÏ
+## å®¢æˆ·ç«¯å®‰è£…æŒ‡å—
 
-1. ÏÂÔØ²¢°²×° Python
+1. ä¸‹è½½å¹¶å®‰è£… Python
 
-2. ÏÂÔØ²¢°²×° SetupTools
+2. ä¸‹è½½å¹¶å®‰è£… SetupTools
 
-3. °²×° Python ÒÀÀµ°ü
+3. å®‰è£… Python ä¾èµ–åŒ…
 cd path_to_python/Scripts
 easy_install poster
 easy_install simplejson
 
-4. ÏÂÔØÏàÓ¦ÏµÍ³ºÍä¯ÀÀÆ÷µÄ¿Í»§¶Ë½Å±¾
-Èç£ºhttps://github.com/sorrycc/icapt/blob/master/build/client_win_ie.zip?raw=true
+4. ä¸‹è½½ç›¸åº”ç³»ç»Ÿå’Œæµè§ˆå™¨çš„å®¢æˆ·ç«¯è„šæœ¬
+å¦‚ï¼šhttps://github.com/sorrycc/icapt/blob/master/build/client_win_ie.zip?raw=true
 
-5. ĞŞ¸Ä config.sample.ini µÄÎÄ¼şÃûÎª config.ini
+5. ä¿®æ”¹ config.sample.ini çš„æ–‡ä»¶åä¸º config.ini
 
-6. ĞŞ¸Ä config.ini ÅäÖÃÎÄ¼ş
+6. ä¿®æ”¹ config.ini é…ç½®æ–‡ä»¶
 
-7. Æô¶¯¿Í»§¶Ë½Å±¾
+7. å¯åŠ¨å®¢æˆ·ç«¯è„šæœ¬
 python client.py
 
