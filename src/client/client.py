@@ -94,8 +94,19 @@ def uploadTask(configures, fn, task_id):
 
 	request = urllib2.Request(url, datagen, headers)
 
-	print(urllib2.urlopen(request).read())
-	log("upload done!")
+	for i in range(100):
+		# 尝试上传
+		try:
+			log(urllib2.urlopen(request).read())
+			log("upload done!")
+			break
+		except Exception:
+			printErrInfo()
+			sleep_time = i + 10
+			log("sleep %ds..." % sleep_time)
+			time.sleep(sleep_time)
+	else:
+		log("Task Fail!")
 
 
 def printErrInfo():
@@ -140,12 +151,8 @@ def handleOneTask(configures, task_url, task_id, out="out.png", timeout=60):
 		# 截图成功，处理当前截图
 		fn = "%s.%s" % (task_id, out.split(".")[-1])
 		shutil.move(out, fn)
-		try:
-			uploadTask(configures, fn, task_id)
-			os.remove(fn)
-		except Exception:
-			printErrInfo()
-			return
+		uploadTask(configures, fn, task_id)
+		os.remove(fn)
 	else:
 		# 截图失败，在当前目录下未找到截图
 
