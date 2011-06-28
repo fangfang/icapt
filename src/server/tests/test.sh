@@ -1,5 +1,5 @@
 # remove imgs
-rm -rf ../../../imgs/2011/
+rm -rf ./imgs/*
 
 # add task
 curl http://test.taobao.com:8888/add?url=http%3A%2F%2Fwww.taobao.com%2F

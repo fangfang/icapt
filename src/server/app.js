@@ -1,4 +1,4 @@
-
+require.paths.unshift('./node_modules');
 require('./libs/fs.extra');
 
 var express = require('express'),
@@ -7,10 +7,14 @@ var express = require('express'),
     uuid = require('node-uuid'),
     fs = require('fs'),
     mkdirP = require('./libs/mkdir_p'),
-    app = express.createServer(form({ keepExtensions: true })),
-    port = process.env.PORT || 8888,
+
+    IMG_DIR = './imgs',
+    port = process.env.VMC_APP_PORT || process.env.PORT || 8888,
+    app = express.createServer(form({
+        keepExtensions: true,
+        uploadDir: path.join(__dirname, './imgs_tmp')
+    })),
     tasks = {
-        // task for test
         '12345': {
             taskId: '12345',
             url: 'http://www.taobao.com/',
@@ -23,7 +27,7 @@ app.configure(function() {
     app.use(express.methodOverride());
     app.use(express.bodyParser());
     app.use(app.router);
-    app.use(express.static(path.join(__dirname, '../../imgs')));
+    app.use(express.static(path.join(__dirname, IMG_DIR)));
 });
 
 app.set('view engine', 'jade');
@@ -89,7 +93,7 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
             var task = tasks[taskId];
             if (task) {
                 console.log(task);
-                var p = path.join(__dirname, '../../imgs/', task.path + '/');
+                var p = path.join(__dirname, IMG_DIR, task.path + '/');
                 mkdirP(p, 488, function() {
                     var newFilePath = p + type + path.extname(f.name);
                     fs.move(f.path, newFilePath);
@@ -105,7 +109,7 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
 app.get('/list/:path', function(req, res) {
     var p = req.params.path;
     var dir = p.slice(0, 11).replace(/-/g, '/');
-    p = path.join(__dirname, '../../imgs/', dir, p.slice(11));
+    p = path.join(__dirname, IMG_DIR, dir, p.slice(11));
 
     fs.readdir(p, function(err, files) {
         if (err) {
