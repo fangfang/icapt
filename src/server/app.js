@@ -1,3 +1,8 @@
+global.log = function(msg, type) {
+    type = type || 'log';
+    console.log(' - ' + type + ': ' + msg);
+};
+
 require.paths.unshift('./node_modules');
 require('./libs/fs.extra');
 
@@ -7,20 +12,23 @@ var express = require('express'),
     uuid = require('node-uuid'),
     fs = require('fs'),
     mkdirP = require('./libs/mkdir_p'),
+    exec = require('child_process').exec,
 
     IMG_DIR = './imgs',
     port = process.env.VMC_APP_PORT || process.env.PORT || 8888,
     app = express.createServer(form({
         keepExtensions: true,
-        uploadDir: path.join(__dirname, './imgs_tmp')
+        uploadDir: path.join(__dirname, './imgs')
     })),
     tasks = {
+        /*
         '12345': {
             taskId: '12345',
             url: 'http://www.taobao.com/',
             status: {},
             path: '2011/06/17/12345'
         }
+        */
     };
 
 app.configure(function() {
@@ -54,12 +62,10 @@ app.get('/add', function(req, res) {
     try {
         var query = require('querystring').parse(require('url').parse(req.url).query);
         var task = addTask(query['url']);
-        // res.send("ok\n");
         res.redirect('/?path='+task.path);
     } catch(e) {
         res.send("error\n");
     }
-    // console.log(tasks);
 });
 
 app.get('/get/:type', function(req, res) {
@@ -94,9 +100,15 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
             if (task) {
                 console.log(task);
                 var p = path.join(__dirname, IMG_DIR, task.path + '/');
-                mkdirP(p, 488, function() {
+                exec('mkdir -p ' + path, function(err) {
+                    if (err) {
+                        log('mkdir -p error: ' + err, 'err');
+                        return;
+                    }
                     var newFilePath = p + type + path.extname(f.name);
                     fs.move(f.path, newFilePath);
+                });
+                mkdirP(p, 488, function() {
                     // fs.rename(f.path, newFilePath);
                 });
             }
@@ -107,9 +119,8 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
 });
 
 app.get('/list/:path', function(req, res) {
-    var p = req.params.path;
-    var dir = p.slice(0, 11).replace(/-/g, '/');
-    p = path.join(__dirname, IMG_DIR, dir, p.slice(11));
+    var p = req.params.path.split('-');
+    p = path.join(__dirname, IMG_DIR, p.slice(0,3).join('/'), p.slice(3).join('-'));
 
     fs.readdir(p, function(err, files) {
         if (err) {
