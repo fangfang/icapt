@@ -162,12 +162,13 @@ def handleOneTask(configures, task_url, task_id, out="out.png", timeout=60):
 def getAndDo(configures):
 	u"""取得并处理任务"""
 
-	u = urllib.urlopen(g_urls["gettask"] % configures)
 	try:
+		u = urllib.urlopen(g_urls["gettask"] % configures)
 		c = u.read()
 		tasks = simplejson.loads(c.strip())
 	except Exception:
-		printErrInfo()
+#		printErrInfo()
+		log("fail to get task!")
 		return
 
 	log("%d tasks!" % len(tasks))
