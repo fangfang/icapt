@@ -190,3 +190,12 @@ function getTasks(type) {
     return ret;
 }
 
+// TODO:
+// 如果一个小时内执行过，直接返回执行过的任务的结果
+function checkTasks(url) {
+    for (var k in tasks) {
+        if (tasks[k].url === url && new Date() - tasks[k] < 3600000) {
+            return tasks[k].path;
+        }
+    }
+}
