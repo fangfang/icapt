@@ -25,7 +25,8 @@ var express = require('express'),
         keepExtensions: true,
         uploadDir: IMG_DIR
     })),
-    tasks = {};
+    tasks = {},
+    sessions = {};
 
 app.configure(function() {
     app.use(express.methodOverride());
@@ -45,13 +46,27 @@ log('server started at '+port);
 
 app.get('/', function(req, res) {
     var listGuide = '';
+    var clients = [];
+
     try {
         var query = require('querystring').parse(require('url').parse(req.url).query);
         var p = query.path;
         p = p.replace(/\//g, '-');
         listGuide = '<br><br><a href="/list/'+p+'">client is rendering, please click to view imgs after 5 seconds.</a>';
     } catch(e) {}
-    res.render('home.jade', {layout:false, listGuide:listGuide});
+
+    // check Session
+    for (var k in sessions) {
+        if (new Date() - sessions[k] > 60000) {
+            delete sessions[k];
+        } else {
+            clients.push(k);
+        }
+    }
+
+    clients = clients.length ? ('clients: ' + clients.join(', ')) : '';
+
+    res.render('home.jade', {layout:false, listGuide:listGuide, clients:clients});
 });
 
 app.get('/add', function(req, res) {
@@ -68,6 +83,7 @@ app.get('/add', function(req, res) {
 
 app.get('/get/:type', function(req, res) {
     var type = req.params.type;
+    sessions[type] = new Date();
     try {
         res.send(JSON.stringify(getTasks(type))+"\n");
     } catch(e) {
