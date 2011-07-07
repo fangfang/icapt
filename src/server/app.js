@@ -9,7 +9,7 @@ global.log = function(msg, type) {
         'info': '32', // green
         'ooo': '36'  // blue
     };
-    console.log('   \033['+colors[type]+'m'+type+' -\033[39m ' + msg);
+    console.log('   \033['+colors[type]+'m'+type+(type=='info'?'  ':'   ')+'-\033[39m ' + msg);
 };
 
 
