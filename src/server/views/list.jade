@@ -3,7 +3,12 @@ html
   head
     meta(charset='utf-8')
     title iCapt List
+    style
+      #list { overflow:hidden; zoom:1; }
+      #list div { width:400px; overflow:hidden; float:left; }
+      #list div img { width:400px; }
 
   body
     h1 iCapt List
-    !{imgs}
+    div(id='list')
+      !{imgs}

@@ -1,50 +1,46 @@
+///////////////////////////////////////////////////////////////////
+// Global
+
 global.log = function(msg, type) {
     type = type || 'log';
     console.log(' - ' + type + ': ' + msg);
 };
 
+
+///////////////////////////////////////////////////////////////////
+// App
+
 require.paths.unshift('./node_modules');
-require('./libs/fs.extra');
 
 var express = require('express'),
     form = require('connect-form'),
     path = require('path'),
     uuid = require('node-uuid'),
     fs = require('fs'),
-    mkdirP = require('./libs/mkdir_p'),
     exec = require('child_process').exec,
 
-    IMG_DIR = './imgs',
+    IMG_DIR = path.join(__dirname, './imgs'),
     port = process.env.VMC_APP_PORT || process.env.PORT || 8888,
     app = express.createServer(form({
         keepExtensions: true,
-        uploadDir: path.join(__dirname, './imgs')
+        uploadDir: IMG_DIR
     })),
-    tasks = {
-        /*
-        '12345': {
-            taskId: '12345',
-            url: 'http://www.taobao.com/',
-            status: {},
-            path: '2011/06/17/12345'
-        }
-        */
-    };
+    tasks = {};
 
 app.configure(function() {
     app.use(express.methodOverride());
     app.use(express.bodyParser());
     app.use(app.router);
-    app.use(express.static(path.join(__dirname, IMG_DIR)));
+    app.use(express.static(IMG_DIR));
 });
 
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, './views/'));
 app.listen(port);
-console.log('[log] server started at '+port);
+log('server started at '+port);
 
 
-/////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // Router
 
 app.get('/', function(req, res) {
@@ -62,8 +58,10 @@ app.get('/add', function(req, res) {
     try {
         var query = require('querystring').parse(require('url').parse(req.url).query);
         var task = addTask(query['url']);
+        log('task added: ' + task.taskId);
         res.redirect('/?path='+task.path);
     } catch(e) {
+        log('task add failed: ' + e, 'err');
         res.send("error\n");
     }
 });
@@ -86,30 +84,27 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
     // Command: curl -F "filename=@file.jpg" http://host:port/upload
     req.form.complete(function(err, fields, files) {
         if (err) {
+            log('upload failed', 'err');
             return next();
         }
         
         for (var k in files) {
             var f = files[k];
-            console.log('fileinfo === ');
-            console.log('path: ' + f.path);
-            console.log('name: ' + f.name);
-            console.log('taskId: ' + taskId);
-
             var task = tasks[taskId];
+            log('file uploaded: ' + f.path + ' , ' + f.name);
             if (task) {
-                console.log(task);
-                var p = path.join(__dirname, IMG_DIR, task.path + '/');
-                exec('mkdir -p ' + path, function(err) {
+                var p = path.join(IMG_DIR, task.path + '/');
+                exec('mkdir -p ' + p, function(err) {
                     if (err) {
                         log('mkdir -p error: ' + err, 'err');
                         return;
                     }
                     var newFilePath = p + type + path.extname(f.name);
-                    fs.move(f.path, newFilePath);
-                });
-                mkdirP(p, 488, function() {
-                    // fs.rename(f.path, newFilePath);
+                    exec('mv ' + f.path + ' ' + newFilePath, function(err) {
+                        if (err) {
+                            log('mv error: ' + err, 'err');
+                        }
+                    });
                 });
             }
         }
@@ -120,7 +115,9 @@ app.post('/upload/:type/:taskId', function(req, res, next) {
 
 app.get('/list/:path', function(req, res) {
     var p = req.params.path.split('-');
-    p = path.join(__dirname, IMG_DIR, p.slice(0,3).join('/'), p.slice(3).join('-'));
+    var date = p.slice(0,3).join('/');
+    var id = p.slice(3).join('-');
+    p = path.join(IMG_DIR, date, id);
 
     fs.readdir(p, function(err, files) {
         if (err) {
@@ -129,17 +126,18 @@ app.get('/list/:path', function(req, res) {
         }
 
         var imgs = '';
+        files.sort();
         files.forEach(function(f) {
             var filePath = path.join(p, f).split('imgs')[1];
-            imgs += '<h2>' + f + '</h2>';
-            imgs += '<div><img src="'+filePath+'" alt="'+f+'" /></div><br><br>';
+            imgs += '<div><h3>' + f + '</h3>';
+            imgs += '<a href="'+filePath+'" target="_blank"><img src="'+filePath+'" alt="'+f+'" /></a></div>';
         });
         res.render('list.jade', {layout: false, imgs:imgs});
     });
 });
 
 
-/////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // Task
 
 function addTask(url) {
@@ -153,11 +151,6 @@ function addTask(url) {
     if (url.indexOf('http://') !== 0 || url.indexOf('https://') !== 0) {
         url = 'http://' + url;
     }
-    /*
-    if (url.lastIndexOf('/') !== url.length-1) {
-        url += '/';
-    }
-    */
 
     var task = {
         taskId: taskId,
