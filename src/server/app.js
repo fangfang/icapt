@@ -46,7 +46,6 @@ log('server started at '+port);
 
 app.get('/', function(req, res) {
     var listGuide = '';
-    var clients = [];
 
     try {
         var query = require('querystring').parse(require('url').parse(req.url).query);
@@ -55,7 +54,8 @@ app.get('/', function(req, res) {
         listGuide = '<br><br><a href="/list/'+p+'">client is rendering, please click to view imgs after 5 seconds.</a>';
     } catch(e) {}
 
-    // check Session
+    // Check Session And Get Clients
+    var clients = [];
     for (var k in sessions) {
         if (new Date() - sessions[k] > 60000) {
             delete sessions[k];
@@ -63,7 +63,6 @@ app.get('/', function(req, res) {
             clients.push(k);
         }
     }
-
     clients = clients.length ? ('clients: ' + clients.join(', ')) : '';
 
     res.render('home.jade', {layout:false, listGuide:listGuide, clients:clients});
@@ -172,7 +171,8 @@ function addTask(url) {
         taskId: taskId,
         url: url,
         status: {},
-        path: y+'/'+m+'/'+d+'/'+taskId
+        path: y+'/'+m+'/'+d+'/'+taskId,
+        date: n
     };
     tasks[taskId] = task;
     return task;
@@ -181,7 +181,8 @@ function addTask(url) {
 function getTasks(type) {
     var ret = [];
     for (var k in tasks) {
-        if (!tasks[k]['status'][type]) {
+        // task in 1 hour and not be getted
+        if (new Date() - tasks[k]['date'] < 3600000 && !tasks[k]['status'][type]) {
             tasks[k]['status'][type] = true;
             ret.push([tasks[k]['url'], tasks[k]['taskId']]);
         }
